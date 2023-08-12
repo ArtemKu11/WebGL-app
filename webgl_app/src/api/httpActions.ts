@@ -2,7 +2,7 @@ import { RootState } from "@/store/types"
 import { Store } from "vuex"
 import { httpClient } from "./AxiosHttpClient"
 import { PARSING_OBJECT_WAIT } from "@/waits"
-import { WebGLData } from "@/components/obj_parser"
+import { WebGLData } from "@/components/canvas/obj_parser"
 
 export class HttpActions {
     private store: Store<RootState>
