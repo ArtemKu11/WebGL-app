@@ -47,3 +47,15 @@ class DefaultServerAnswer:
             return self.web_gl_data.to_json()
         else:
             return "null"
+
+
+@dataclass
+class SocketServerResponse:
+    result: dict | str | list
+    jsonrpc: str = '2.0'
+
+    def to_json(self) -> dict:
+        return {
+            "jsonrpc": self.jsonrpc,
+            "result": self.result
+        }

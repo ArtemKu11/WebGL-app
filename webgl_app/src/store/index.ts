@@ -1,6 +1,7 @@
 import { createStore } from 'vuex'
 import { alerts } from './alerts'
 import { waits } from './waits'
+import { socket } from './socket'
 
 export default createStore({
     getters: {
@@ -11,6 +12,7 @@ export default createStore({
     },
     modules: {
         alerts,
-        waits
+        waits,
+        socket
     }
 })

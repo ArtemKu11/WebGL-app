@@ -30,11 +30,12 @@
             <input ref="input" type="file">
             <button @click="server">Загрузить</button>
         </form>
+        <button @click="socket">Сокет</button>
     </div>
 </template>
 
 <script lang="ts">
-import { httpActions } from '@/main'
+import { httpActions, socket } from '@/main'
 import { Alerts } from '@/store/alerts/helpers'
 import { InfoAlertType } from '@/store/alerts/types'
 import { defineComponent } from 'vue'
@@ -236,6 +237,10 @@ export default defineComponent({
             }
             // const result = await httpClient.post('/parse_stl')
             // console.log(result)
+        },
+
+        socket() {
+            socket.emit()
         }
     }
 })
