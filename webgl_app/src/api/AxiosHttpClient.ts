@@ -14,7 +14,6 @@ const createHttpClient = () => {
         return response
     },
     (error: AxiosError) => {
-        console.log(error)
         if (error.response?.data) {
             const serverError = error.response.data as ServerError
             const alert: InfoAlertType = {

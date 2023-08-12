@@ -5,7 +5,7 @@
             height="480">
             Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
         </canvas>
-        <div class="value-container">
+        <!-- <div class="value-container">
             <span>Угол камеры Y</span>
             <input @input="rotateObjectY" v-model="cameraYAngleValue" type="range" min="0" max="360" step="1">
             <span class="value-span">{{ cameraYAngleValue }}</span>
@@ -20,7 +20,7 @@
             <input @input="refreshCameraXTranslation" v-model="cameraXTranslation" type="range" min="-300" max="300"
                 step="1">
             <span class="value-span">{{ cameraXTranslation }}</span>
-        </div>
+        </div> -->
         <button @click="toDefault">Вернуть в исходное</button>
         <div class="checkbox-container">
             <input @change="checkboxEvent" id="checkbox" type="checkbox">
@@ -34,13 +34,13 @@
 </template>
 
 <script lang="ts">
+import { httpActions } from '@/main'
+import { Alerts } from '@/store/alerts/helpers'
+import { InfoAlertType } from '@/store/alerts/types'
 import { defineComponent } from 'vue'
 import { CanvasHandler } from './canvas_handler'
-import { ObjParser, WebGLData } from './obj_parser'
+import { ObjParser } from './obj_parser'
 import { blenderCube } from './objects'
-import { httpClient } from '@/api/AxiosHttpClient'
-import { InfoAlertType } from '@/store/alerts/types'
-import { Alerts } from '@/store/alerts/helpers'
 
 interface Coords {
     x: number,
@@ -82,7 +82,7 @@ export default defineComponent({
             this.canvasHandler = new CanvasHandler(canvas)
             const parsedObject = new ObjParser(blenderCube()).parseObject()
             if (parsedObject) {
-                this.canvasHandler.renderObject(parsedObject, 50)
+                this.canvasHandler.renderObject(parsedObject, 1)
             }
             document.addEventListener('mousedown', this.mouseWheelDownEvent)
             document.addEventListener('mouseup', this.mouseWheelUpEvent)
@@ -112,9 +112,11 @@ export default defineComponent({
         wheelEvent(e: WheelEvent) {
             if (this.canvasHandler) {
                 if (e.deltaY > 0) {
-                    this.canvasHandler.moveCameraByOneAxis('z', 60)
+                    this.canvasHandler.zoomCameraByPercent(10)
+                    // this.canvasHandler.moveCameraByOneAxis('z', 60)
                 } else {
-                    this.canvasHandler.moveCameraByOneAxis('z', -60)
+                    this.canvasHandler.zoomCameraByPercent(-10)
+                    // this.canvasHandler.moveCameraByOneAxis('z', -60)
                 }
             }
         },
@@ -220,14 +222,9 @@ export default defineComponent({
             if (input) {
                 const files = input.files
                 if (files?.length) {
-                    const formData = new FormData()
-                    formData.append('file', files[0])
-                    console.log('otpravka')
-                    const result = await httpClient.post('/parse_stl', formData)
-                    console.log(result)
-                    if (result && result.data && result.data.vertices && result.data.normals && this.canvasHandler) {
-                        const parsedObject = result.data as WebGLData
-                        this.canvasHandler.renderObject(parsedObject, 1)
+                    const webGlData = await httpActions.parseObject(files[0])
+                    if (webGlData && this.canvasHandler) {
+                        this.canvasHandler.renderObject(webGlData)
                     }
                 } else {
                     const alert: InfoAlertType = {

@@ -111,7 +111,7 @@ export class CanvasHandler {
             this.programData.camera.lastCameraMatrix = m4.identity()
             this.programData.camera.cameraXTranslation = 0
             this.programData.camera.cameraYTranslation = 0
-            this.programData.camera.cameraZTranslation = 600
+            this.programData.camera.cameraZTranslation = 4
             this.drawScene()
         }
     }
@@ -177,13 +177,32 @@ export class CanvasHandler {
                     this.programData.camera.cameraYTranslation += distance
                     break
                 case 'z':
-                    if (this.programData.camera.cameraZTranslation + distance > -600) {
-                        this.programData.camera.cameraZTranslation += distance
-                    }
+                    // if (this.programData.camera.cameraZTranslation + distance > -600) {
+                    this.programData.camera.cameraZTranslation += distance
+                    // }
                     break
                 default:
                     break
             }
+            this.drawScene()
+        }
+    }
+
+    zoomCameraByPercent(percent: number) {
+        if (this.programData) {
+            let currentPosition = this.programData.camera.cameraZTranslation
+            if (currentPosition < 0.1 && percent < 0) {
+                return
+            }
+            if (currentPosition === 0) {
+                if (percent > 0) {
+                    currentPosition = 0.1
+                } else {
+                    currentPosition = -0.1
+                }
+            }
+            const requriedPosition = currentPosition + currentPosition * (percent / 100)
+            this.programData.camera.cameraZTranslation = requriedPosition
             this.drawScene()
         }
     }
@@ -208,7 +227,7 @@ export class CanvasHandler {
             let xTranslation = this.programData.camera.cameraXTranslation
             let yTranslation = this.programData.camera.cameraYTranslation
             const zTranslation = this.programData.camera.cameraZTranslation
-            if (zTranslation > 100) {
+            if (zTranslation > 0) {
                 const width = this.canvasElement.clientWidth
                 const height = this.canvasElement.clientHeight
                 const requiredXFraction = xTranslation / (width / 2)
@@ -339,7 +358,7 @@ export class CanvasHandler {
                 bindYAxisToObject: false,
                 cameraXTranslation: 0,
                 cameraYTranslation: 0,
-                cameraZTranslation: 400,
+                cameraZTranslation: 4,
                 fieldOfViewRadians: this.degToRad(60),
                 lastCameraMatrix: m4.identity(),
                 objectAngleXRadians: 0,

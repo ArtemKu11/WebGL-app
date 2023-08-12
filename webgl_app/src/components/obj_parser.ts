@@ -177,7 +177,7 @@ export class ObjParser {
         }
     }
 
-    private parse2DCoords(line: string): Coordinate3D | null {
+    private parse2DCoords(line: string): Coordinate2D | null {
         const parameters = this.excludeKeywordAndSplit(line)
         if (parameters.length) {
             const parsedParameters = []
@@ -194,8 +194,8 @@ export class ObjParser {
             if (parsedParameters.length >= 2) {
                 return {
                     x: parsedParameters[0],
-                    y: parsedParameters[1],
-                    z: parsedParameters[2]
+                    y: parsedParameters[1]
+                    // z: parsedParameters[2]
                 }
             } else {
                 return null
