@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { toCamelCase } from "@/helpers/toCamelCase"
 import { RootState } from "@/store/types"
 import { Store } from "vuex"
 
@@ -58,8 +59,13 @@ export class SocketClient {
         this.connection.onmessage = (m) => {
             const response = m as any
             if (response.data) {
-                const sockerResponse = JSON.parse(response.data) as SocketResponse
-                console.log(sockerResponse)
+                const socketResponse = JSON.parse(response.data) as SocketResponse
+                if (socketResponse.method) {
+                    if (socketResponse.method.startsWith('notify')) {
+                        this.store.dispatch('socket/' + toCamelCase(socketResponse.method), socketResponse.params)
+                    }
+                }
+                console.log(socketResponse)
             }
         }
     }

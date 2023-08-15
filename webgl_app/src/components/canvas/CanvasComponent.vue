@@ -5,22 +5,6 @@
             height="480">
             Your browser doesn't appear to support the HTML5 <code>&lt;canvas&gt;</code> element.
         </canvas>
-        <!-- <div class="value-container">
-            <span>Угол камеры Y</span>
-            <input @input="rotateObjectY" v-model="cameraYAngleValue" type="range" min="0" max="360" step="1">
-            <span class="value-span">{{ cameraYAngleValue }}</span>
-        </div>
-        <div class="value-container">
-            <span>Угол камеры X</span>
-            <input @input="rotateObjectX" v-model="cameraXAngleValue" type="range" min="0" max="360" step="1">
-            <span class="value-span">{{ cameraXAngleValue }}</span>
-        </div>
-        <div class="value-container">
-            <span>Камера</span>
-            <input @input="refreshCameraXTranslation" v-model="cameraXTranslation" type="range" min="-300" max="300"
-                step="1">
-            <span class="value-span">{{ cameraXTranslation }}</span>
-        </div> -->
         <button @click="toDefault">Вернуть в исходное</button>
         <div class="checkbox-container">
             <input @change="checkboxEvent" id="checkbox" type="checkbox">
@@ -30,15 +14,15 @@
             <input ref="input" type="file">
             <button @click="server">Загрузить</button>
         </form>
-        <button @click="socket">Сокет</button>
     </div>
 </template>
 
 <script lang="ts">
-import { httpActions, socket } from '@/main'
+import { WebGLData } from '@/components/canvas/obj_parser'
+import { httpActions, socketActions } from '@/main'
 import { Alerts } from '@/store/alerts/helpers'
 import { InfoAlertType } from '@/store/alerts/types'
-import { defineComponent } from 'vue'
+import { defineComponent, watch } from 'vue'
 import { CanvasHandler } from './canvas_handler'
 import { ObjParser } from './obj_parser'
 import { blenderCube } from './objects'
@@ -88,6 +72,13 @@ export default defineComponent({
             document.addEventListener('mousedown', this.mouseWheelDownEvent)
             document.addEventListener('mouseup', this.mouseWheelUpEvent)
         }
+
+        watch(() => this.webGLData, () => {
+            if (this.canvasHandler) {
+                console.log(this.webGLData)
+                this.canvasHandler.renderObject(this.webGLData, 1)
+            }
+        }, { deep: true })
     },
 
     beforeUnmount() {
@@ -99,6 +90,11 @@ export default defineComponent({
 
     methods: {
         checkboxEvent(e: Event) {
+            const data: WebGLData = {
+                vertices: [-1, -1, 1, 1, -1, 1, 1, -2, 1, 1, -2, 1, -1, -2, 1, -1, -1, 1],
+                normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
+            }
+            this.$store.dispatch('webgl/setWebGLData', data, { root: true })
             const target = e.target as HTMLInputElement
             if (this.canvasHandler) {
                 if (target.checked) {
@@ -219,6 +215,7 @@ export default defineComponent({
         },
 
         async server() {
+            socketActions.emit()
             const input = this.$refs.input as HTMLInputElement
             if (input) {
                 const files = input.files
@@ -235,12 +232,12 @@ export default defineComponent({
                     Alerts.showInfoAlert(alert)
                 }
             }
-            // const result = await httpClient.post('/parse_stl')
-            // console.log(result)
-        },
+        }
+    },
 
-        socket() {
-            socket.emit()
+    computed: {
+        webGLData(): WebGLData {
+            return this.$store.getters['webgl/getWebGLData']
         }
     }
 })

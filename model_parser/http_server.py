@@ -34,14 +34,14 @@ def parse_stl():
             file_stream.close()
             web_gl_data, logs = ObjParser(object_code).parse_object()
             answer = DefaultServerAnswer(web_gl_data, logs)
-            return answer.to_json()
+            return answer.to_json_dict()
         elif original_filename.endswith('.stl'):
             path = f'./temp/{original_filename}'
             file.save(path)
             web_gl_data = parse_stl_file(path)
             os.remove(path)
             answer = DefaultServerAnswer(web_gl_data, [])
-            return answer.to_json()
+            return answer.to_json_dict()
         else:
             raise FileFormatError('Недопустимый формат файла. Используйте .obj или .stl')
     return 'alalala'

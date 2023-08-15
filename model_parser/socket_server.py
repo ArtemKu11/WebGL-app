@@ -3,48 +3,68 @@ import json
 import queue
 import websockets
 from websockets.exceptions import ConnectionClosedOK
-from dto import SocketServerResponse
+from socket_modules import SocketServerResponse
+from mesh_creator import MeshCreator
 
 
 class WebSocketServer:
     loop: asyncio.AbstractEventLoop
-    events_queue: queue.Queue[dict]
+    notifications_queue: queue.Queue[SocketServerResponse]
 
     def __init__(self, loop):
         self.loop = loop
         self.clients_list = []
-        self.events_queue = queue.Queue()
+        self.notifications_queue = queue.Queue()
 
     async def start_server(self):
         print('[ INFO ] ЗАПУЩЕН СОКЕТ')
         serve_func = websockets.serve(self.new_client_connected, "localhost", 8125)
-        # gpio_processor = GornControllerGPIO(self.send_to_clients, self.clients_list, self.loop, self.events_queue)
-        await asyncio.gather(serve_func, self.__listen_events())
 
-    async def __listen_events(self):
+        # gpio_processor = GornControllerGPIO(self.send_to_clients, self.clients_list, self.loop, self.events_queue)
+        await asyncio.gather(serve_func, self.__listen_notifications())
+
+    async def __listen_notifications(self):
         while True:
-            while not self.events_queue.empty():
-                event = self.events_queue.get(block=True)
-                await self.send_to_clients(event)
+            if not self.clients_list:
+                await asyncio.sleep(1)
+                continue
+            while not self.notifications_queue.empty():
+                response = self.notifications_queue.get(block=True)
+                await self.send_to_clients(response)
             await asyncio.sleep(0.01)
 
-    async def send_to_clients(self, result: dict | str | list):
+    async def send_to_clients(self, socket_response: SocketServerResponse):
         # print(result)
         if len(self.clients_list):
             for i in range(0, len(self.clients_list)):
-                response = json.dumps(SocketServerResponse(result).__dict__)
+                response = json.dumps(socket_response.to_json_dict())
                 await self.clients_list[i].send(response)
+
+    async def create_square(self):
+        web_gl_data = MeshCreator().create_trapezoid(x1=0, y1=-5, x2=-5, y2=0, z=-1, first_height=2, second_height=2,
+                                                     width=2)
+        web_gl_data += MeshCreator().create_trapezoid(x1=-5, y1=0, x2=0, y2=5, z=-1, first_height=2, second_height=2,
+                                                      width=2)
+        web_gl_data += MeshCreator().create_trapezoid(x1=0, y1=5, x2=5, y2=0, z=-1, first_height=2, second_height=2,
+                                                      width=2)
+        web_gl_data += MeshCreator().create_trapezoid(x1=5, y1=0, x2=0, y2=-5, z=-1, first_height=2, second_height=2,
+                                                      width=2)
+        self.notifications_queue.put(
+            SocketServerResponse(method='notify_web_gl_data_changed', params=web_gl_data.to_json_dict()), block=True)
 
     async def new_client_connected(self, client_socket, path):
         print('[ INFO ] НОВЫЙ КЛИЕНТ')
         if self.clients_list.count(client_socket):
             return
         self.clients_list.append(client_socket)
+        await self.create_square()
         while True:
             try:
                 message = await client_socket.recv()
+                print(message)
                 parsed_message = json.loads(message)
-                self.events_queue.put(parsed_message, block=True)
+                response = SocketServerResponse(params=parsed_message, method='notify_web_gl_data_changed')
+                self.notifications_queue.put(response, block=True)
                 print(parsed_message)
             except ConnectionClosedOK:
                 if self.clients_list.count(client_socket):

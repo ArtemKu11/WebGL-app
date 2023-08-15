@@ -323,7 +323,7 @@ export class CanvasHandler {
 
         // Turn on culling. By default backfacing triangles
         // will be culled.
-        this.gl.enable(this.gl.CULL_FACE) // В принципе достаточно только this.gl.DEPTH_TEST
+        // this.gl.enable(this.gl.CULL_FACE) // В принципе достаточно только this.gl.DEPTH_TEST
 
         // Enable the depth buffer
         this.gl.enable(this.gl.DEPTH_TEST)

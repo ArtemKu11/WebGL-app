@@ -2,6 +2,7 @@ import { createStore } from 'vuex'
 import { alerts } from './alerts'
 import { waits } from './waits'
 import { socket } from './socket'
+import { webgl } from './webgl'
 
 export default createStore({
     getters: {
@@ -13,6 +14,7 @@ export default createStore({
     modules: {
         alerts,
         waits,
-        socket
+        socket,
+        webgl
     }
 })

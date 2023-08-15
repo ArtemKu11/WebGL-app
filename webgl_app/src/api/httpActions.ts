@@ -1,6 +1,6 @@
 import { RootState } from "@/store/types"
 import { Store } from "vuex"
-import { httpClient } from "./AxiosHttpClient"
+import { httpClient } from "./axiosHttpClient"
 import { PARSING_OBJECT_WAIT } from "@/waits"
 import { WebGLData } from "@/components/canvas/obj_parser"
 

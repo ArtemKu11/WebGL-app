@@ -1,7 +1,6 @@
 import json
 from dataclasses import dataclass, field
 
-
 class ParsingError(Exception):
     def __init__(self, message, logs=None):
         if logs is None:
@@ -23,7 +22,26 @@ class WebGLData:
     def __repr__(self):
         return f'Vertices: {self.vertices},\nTextures: {self.textures}\nNormals: {self.normals}'
 
-    def to_json(self):
+    def __add__(self, other):
+        if type(other) == type(self):
+            self.vertices.extend(other.vertices)
+            if other.textures:
+                if self.textures:
+                    self.textures.extend(other.textures)
+                else:
+                    self.textures = []
+                    self.textures.extend(other.textures)
+            if other.normals:
+                if self.normals:
+                    self.normals.extend(other.normals)
+                else:
+                    self.normals = []
+                    self.normals.extend(other.normals)
+        else:
+            raise ValueError(f'{type(other)} + {type(self)} не определено')
+        return self
+
+    def to_json_dict(self):
         return {
             "vertices": self.vertices,
             "textures": self.textures,
@@ -36,7 +54,7 @@ class DefaultServerAnswer:
     web_gl_data: WebGLData | None
     logs: list[str] = field(default_factory=list)  # []
 
-    def to_json(self):
+    def to_json_dict(self):
         return {
             "web_gl_data": self.__jsonify_web_gl_data(),
             "logs": self.logs
@@ -44,18 +62,6 @@ class DefaultServerAnswer:
 
     def __jsonify_web_gl_data(self) -> dict[str, list[float] | None] | str:
         if self.web_gl_data is not None:
-            return self.web_gl_data.to_json()
+            return self.web_gl_data.to_json_dict()
         else:
             return "null"
-
-
-@dataclass
-class SocketServerResponse:
-    result: dict | str | list
-    jsonrpc: str = '2.0'
-
-    def to_json(self) -> dict:
-        return {
-            "jsonrpc": self.jsonrpc,
-            "result": self.result
-        }
