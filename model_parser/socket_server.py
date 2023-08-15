@@ -3,6 +3,8 @@ import json
 import queue
 import websockets
 from websockets.exceptions import ConnectionClosedOK
+
+from dto import WebGLData
 from socket_modules import SocketServerResponse
 from mesh_creator import MeshCreator
 
@@ -40,6 +42,35 @@ class WebSocketServer:
                 response = json.dumps(socket_response.to_json_dict())
                 await self.clients_list[i].send(response)
 
+    async def create_layer(self, z: float):
+        web_gl_data = WebGLData([])
+        x = 0
+        y = 0
+        layer_diameter = 100
+        for i in range(0, layer_diameter):
+            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            x += 0.5
+        for i in range(0, layer_diameter):
+            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            y += 0.5
+        for i in range(0, layer_diameter):
+            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            x -= 0.5
+        for i in range(0, layer_diameter):
+            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            y -= 0.5
+        return web_gl_data
+
+
+
+    async def create_sphere(self):
+        web_gl_data = WebGLData([])
+        # for i in range(0, 100):
+        #     web_gl_data += await self.create_layer(i)
+        web_gl_data = MeshCreator().create_sphere(2)
+        self.notifications_queue.put(
+            SocketServerResponse(method='notify_web_gl_data_changed', params=web_gl_data.to_json_dict()), block=True)
+
     async def create_square(self):
         web_gl_data = MeshCreator().create_trapezoid(x1=0, y1=-5, x2=-5, y2=0, z=-1, first_height=2, second_height=2,
                                                      width=2)
@@ -57,7 +88,8 @@ class WebSocketServer:
         if self.clients_list.count(client_socket):
             return
         self.clients_list.append(client_socket)
-        await self.create_square()
+        # await self.create_square()
+        await self.create_sphere()
         while True:
             try:
                 message = await client_socket.recv()

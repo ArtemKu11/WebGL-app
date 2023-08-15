@@ -75,7 +75,7 @@ export default defineComponent({
 
         watch(() => this.webGLData, () => {
             if (this.canvasHandler) {
-                console.log(this.webGLData)
+                // console.log(this.webGLData)
                 this.canvasHandler.renderObject(this.webGLData, 1)
             }
         }, { deep: true })

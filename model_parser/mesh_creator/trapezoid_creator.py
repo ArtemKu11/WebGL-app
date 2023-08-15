@@ -351,3 +351,7 @@ class TrapezoidCreator:
         return Face4Point(right_bottom_point=right_bottom_point, left_bottom_point=left_bottom_point,
                           right_up_point=right_up_point, left_up_point=left_up_point,
                           normal=normal)
+
+
+if __name__ == '__main__':
+    web_gl_data = TrapezoidCreator().create_trapezoid(x1=0, y1=0, x2=1, y2=0, z=3, first_height=2, second_height=3, width=4)

@@ -1,12 +1,18 @@
 from dto import WebGLData
 from .trapezoid_creator import TrapezoidCreator
+from .sphere_creator import SphereCreator
 
 
 class MeshCreator:
     __trapezoid_creator: TrapezoidCreator
+    __sphere_creator: SphereCreator
 
     def __init__(self):
         self.__trapezoid_creator = TrapezoidCreator()
+        self.__sphere_creator = SphereCreator()
+
+    def create_sphere(self, diameter: float, x=0, y=0, z=0) -> WebGLData:
+        return self.__sphere_creator.create_sphere(diameter, x, y, z)
 
     def create_trapezoid(self, x1: float, y1: float, x2: float, y2: float, z: float, first_height: float,
                          second_height: float, width: float) -> WebGLData:

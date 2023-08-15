@@ -4,6 +4,21 @@ from dto import WebGLData
 
 
 @dataclass
+class Coordinate2D:
+    x: float
+    y: float
+
+    def __repr__(self):
+        return f'{self.x}, {self.y}'
+
+    def invert(self):
+        self.x = -self.x
+        self.y = -self.y
+
+    def to_list(self) -> list[float]:
+        return [self.x, self.y]
+
+@dataclass
 class Coordinate3D:
     x: float
     y: float

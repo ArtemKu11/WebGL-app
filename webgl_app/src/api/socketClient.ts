@@ -65,7 +65,7 @@ export class SocketClient {
                         this.store.dispatch('socket/' + toCamelCase(socketResponse.method), socketResponse.params)
                     }
                 }
-                console.log(socketResponse)
+                // console.log(socketResponse)
             }
         }
     }
