@@ -16,7 +16,7 @@ class SphereCreator:
             points_count += 1
         # radii от radius до 0 не включительно
         # z_coords от 0 до radius не включительно
-        radii, z_coords = self.__calculate_radii(radius, int((points_count / 2)) - 1)
+        radii, z_coords = self.__calculate_radii(radius, points_count)
         points = []
 
         for i in range(0, len(radii)):
@@ -34,27 +34,16 @@ class SphereCreator:
         return upper_mesh + down_mesh
         # return down_mesh
 
-    def __calculate_radii(self, radius: float, count: int) -> tuple[list[float], list[int | float]]:
-        radii = []
-        step = radius / (count + 1)
-        y = step
-        radii.append(radius)
+    def __calculate_radii(self, radius: float, count: int):
+        points_1 = self.__calculate_1_or_3_square_points(radius, 0, 0, int(count / 4), 0)
+        radii = [radius]
         z_coords = [0]
-        for i in range(0, count - 1):
-            x = math.sqrt(radius ** 2 - y ** 2)
-            radii.append(x)
-            y += step
-            z_coords.append(y)
-
-        # for i in range(2, 4):
-        #     y += (step / i)
-        #     x = math.sqrt(radius ** 2 - y ** 2)
-        #     radii.append(x)
-        #     z_coords.append(y)
+        for point in points_1:
+            radii.append(point.x)
+            z_coords.append(point.y)
+        radii = radii[:-1]
+        z_coords = z_coords[:-1]
         return radii, z_coords
-
-    # def __get_length(self, x1: float, y1: float, x2: float, y2: float) -> float:
-    #     return math.sqrt((x2 - x1) ** 2 + (y2 - y1 ** 2))
 
     def __create_down_mesh(self, down_points: list[list[Coordinate3D]], radius: float,
                            x: float, y: float, z: float) -> WebGLData:
