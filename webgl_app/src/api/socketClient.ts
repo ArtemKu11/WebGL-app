@@ -49,7 +49,7 @@ export class SocketClient {
         this.connection.onclose = (e) => {
             if (this.debug) { console.log('СОКЕТ ЗАКРЫТ ', e) }
             this.store.commit('socket/setSocketConnected', false)
-            setTimeout(this.connect.bind(this), this.reconnectingTimeout)
+            // setTimeout(this.connect.bind(this), this.reconnectingTimeout)
         }
 
         this.connection.onerror = (e) => {

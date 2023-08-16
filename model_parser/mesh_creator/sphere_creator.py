@@ -10,8 +10,8 @@ class SphereCreator:
             return
         radius = diameter / 2
         circle_length = 2 * math.pi * radius
-        points_count = round(circle_length / (diameter / 20))
-        # points_count = 16
+        # points_count = round(circle_length / (diameter / 20))
+        points_count = 8
         while points_count % 4 != 0:
             points_count += 1
         # radii от radius до 0 не включительно

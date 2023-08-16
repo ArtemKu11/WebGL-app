@@ -35,5 +35,23 @@ export const actions: ActionTree<WebGLState, RootState> = {
                 state.webGLData.normals = payload.normals
             }
         }
+    },
+
+    renderNewObject({ state }) {
+        if (state.renderNewObject) {
+            state.renderNewObject()
+        }
+    },
+
+    pushToCurrentObject({ state }) {
+        if (state.pushToCurrentObject) {
+            state.pushToCurrentObject()
+        }
+    },
+
+    initToNewObject({ state }) {
+        if (state.initToNewObject) {
+            state.initToNewObject()
+        }
     }
 }

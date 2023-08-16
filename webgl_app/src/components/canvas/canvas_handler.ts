@@ -59,6 +59,80 @@ export class CanvasHandler {
         }
     }
 
+    renderInCurrentBuffer(renderData: WebGLData, scaleFactor = 0) {
+        if (renderData.vertices && renderData.normals && this.programData) {
+            const vertices = renderData.vertices.splice(0, renderData.vertices.length)
+            const normals = renderData.normals.splice(0, renderData.normals.length)
+            this.programData.buffers.positionBuffer = this.putSubDataInBuffer(vertices, this.programData.buffers.positionBuffer)
+            this.programData.buffers.normalBuffer = this.putSubDataInBuffer(normals, this.programData.buffers.normalBuffer)
+
+            this.programData.camera.scaleFactor = scaleFactor
+            this.programData.vertexCount += vertices.length
+
+            this.drawScene()
+        }
+    }
+
+    putSubDataInBuffer(data: number[], buffer: WebGLBuffer | null): WebGLBuffer | null {
+        if (this.programData) {
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer)
+            const float32Data = new Float32Array(data)
+            const currentBufferSize = this.gl.getBufferParameter(this.gl.ARRAY_BUFFER, this.gl.BUFFER_SIZE)
+            const currentBufferUsage = this.programData.vertexCount * 4
+            const potential = currentBufferSize - currentBufferUsage
+            const dataSize = float32Data.length * float32Data.BYTES_PER_ELEMENT
+            if (dataSize > potential) {
+                const requiredBytes = (dataSize + currentBufferSize) * 2
+                const newBuffer = this.gl.createBuffer()
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, newBuffer)
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, requiredBytes, this.gl.STATIC_DRAW)
+
+                this.gl.bindBuffer(this.gl.COPY_READ_BUFFER, buffer)
+                this.gl.copyBufferSubData(this.gl.COPY_READ_BUFFER, this.gl.ARRAY_BUFFER, 0, 0, currentBufferUsage)
+                buffer = newBuffer
+                this.gl.bufferSubData(this.gl.ARRAY_BUFFER, currentBufferUsage, float32Data)
+            } else {
+                this.gl.bufferSubData(this.gl.ARRAY_BUFFER, currentBufferUsage, float32Data)
+            }
+        }
+        return buffer
+    }
+
+    initToNewObject() {
+        const vertexShader = this.createShader(this.gl.VERTEX_SHADER, lightningVertexShader())
+        const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, lightningFragmentalShader())
+        if (vertexShader && fragmentShader) {
+            const program = this.createProgram(vertexShader, fragmentShader)
+            if (program) {
+                // look up where the vertex data needs to go.
+                const positionLocation = this.gl.getAttribLocation(program, "a_position")
+                const normalLocation = this.gl.getAttribLocation(program, "a_normal")
+
+                // lookup uniforms
+                const worldViewProjectionLocation = this.gl.getUniformLocation(program, "u_worldViewProjection")
+                const worldInverseTransposeLocation = this.gl.getUniformLocation(program, "u_worldInverseTranspose")
+                const colorLocation = this.gl.getUniformLocation(program, "u_color")
+                const reverseLightDirectionLocation = this.gl.getUniformLocation(program, "u_reverseLightDirection")
+                const reverseLightDirectionLocationTwo = this.gl.getUniformLocation(program, "u_reverseLightDirectionTwo")
+                const reverseLightDirectionLocationThree = this.gl.getUniformLocation(program, "u_reverseLightDirectionThree")
+                const reverseLightDirectionLocationFour = this.gl.getUniformLocation(program, "u_reverseLightDirectionFour")
+
+                const positionBuffer = this.gl.createBuffer()
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer)
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, 292864, this.gl.STATIC_DRAW)
+
+                const normalBuffer = this.gl.createBuffer()
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer)
+                this.gl.bufferData(this.gl.ARRAY_BUFFER, 292864, this.gl.STATIC_DRAW)
+
+                this.createProgramData(program, positionLocation, normalLocation, worldViewProjectionLocation, worldInverseTransposeLocation,
+                    reverseLightDirectionLocation, colorLocation, positionBuffer, normalBuffer, reverseLightDirectionLocationTwo,
+                    reverseLightDirectionLocationThree, reverseLightDirectionLocationFour, 1, 0)
+                this.clearCanvasAndEnable3DFeatures()
+            }
+        }
+    }
+
     renderObject(renderData: WebGLData, scaleFactor = 1) {
         if (renderData.vertices && renderData.normals) {
             const vertexShader = this.createShader(this.gl.VERTEX_SHADER, lightningVertexShader())
@@ -418,7 +492,7 @@ export class CanvasHandler {
 
         try {
             // Попытаться получить стандартный контекст. Если не получится, попробовать получить экспериментальный.
-            gl = this.canvasElement.getContext('webgl') as WebGL2RenderingContext || this.canvasElement.getContext('experimental-webgl') as WebGL2RenderingContext
+            gl = this.canvasElement.getContext('webgl2') as WebGL2RenderingContext || this.canvasElement.getContext('experimental-webgl') as WebGL2RenderingContext
         } catch (e) { }
 
         // Если мы не получили контекст GL, завершить работу

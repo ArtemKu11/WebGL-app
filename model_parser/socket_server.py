@@ -43,33 +43,56 @@ class WebSocketServer:
                 await self.clients_list[i].send(response)
 
     async def create_layer(self, z: float):
-        web_gl_data = WebGLData([])
+        # web_gl_data = WebGLData([])
         x = 0
         y = 0
         layer_diameter = 100
+        web_gl_data = WebGLData([])
         for i in range(0, layer_diameter):
-            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            web_gl_data = MeshCreator().create_sphere(2, x, y, z)
+            self.push_to_current_object(web_gl_data)
             x += 0.5
+            # await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
+        # self.push_to_current_object(web_gl_data)
+        # await asyncio.sleep(5)
         for i in range(0, layer_diameter):
-            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            web_gl_data = MeshCreator().create_sphere(2, x, y, z)
+            self.push_to_current_object(web_gl_data)
             y += 0.5
+            # await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
         for i in range(0, layer_diameter):
-            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            web_gl_data = MeshCreator().create_sphere(2, x, y, z)
+            self.push_to_current_object(web_gl_data)
             x -= 0.5
+            # await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
         for i in range(0, layer_diameter):
-            web_gl_data += MeshCreator().create_sphere(2, x, y, z)
+            web_gl_data = MeshCreator().create_sphere(2, x, y, z)
+            self.push_to_current_object(web_gl_data)
             y -= 0.5
+            # await asyncio.sleep(0.05)
+        await asyncio.sleep(0.5)
         return web_gl_data
 
-
+    def push_to_current_object(self, web_gl_data: WebGLData):
+        self.notifications_queue.put(
+            SocketServerResponse(method='notify_web_gl_push_to_current_object', params=web_gl_data.to_json_dict()),
+            block=True)
 
     async def create_sphere(self):
-        web_gl_data = WebGLData([])
-        # for i in range(0, 100):
-        #     web_gl_data += await self.create_layer(i)
-        web_gl_data = MeshCreator().create_sphere(2)
         self.notifications_queue.put(
-            SocketServerResponse(method='notify_web_gl_data_changed', params=web_gl_data.to_json_dict()), block=True)
+            SocketServerResponse(method='notify_web_gl_init_to_new_object'),
+            block=True)
+
+        # web_gl_data = WebGLData([])
+        for i in range(0, 100):
+            print('Слой', i)
+            await self.create_layer(i)
+        # web_gl_data = MeshCreator().create_sphere(2)
+        # self.notifications_queue.put(
+        #     SocketServerResponse(method='notify_web_gl_data_changed', params=web_gl_data.to_json_dict()), block=True)
 
     async def create_square(self):
         web_gl_data = MeshCreator().create_trapezoid(x1=0, y1=-5, x2=-5, y2=0, z=-1, first_height=2, second_height=2,

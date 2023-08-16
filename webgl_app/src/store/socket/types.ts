@@ -1,3 +1,4 @@
 export interface SocketState {
-    isSocketConnected: boolean
+    isSocketConnected: boolean,
+
 }

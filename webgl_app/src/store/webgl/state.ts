@@ -6,7 +6,10 @@ export const defaultState = (): WebGLState => {
             vertices: [],
             normals: [],
             textures: []
-        }
+        },
+        renderNewObject: null,
+        pushToCurrentObject: null,
+        initToNewObject: null
     }
 }
 

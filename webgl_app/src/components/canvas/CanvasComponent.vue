@@ -22,7 +22,7 @@ import { WebGLData } from '@/components/canvas/obj_parser'
 import { httpActions, socketActions } from '@/main'
 import { Alerts } from '@/store/alerts/helpers'
 import { InfoAlertType } from '@/store/alerts/types'
-import { defineComponent, watch } from 'vue'
+import { defineComponent } from 'vue'
 import { CanvasHandler } from './canvas_handler'
 import { ObjParser } from './obj_parser'
 import { blenderCube } from './objects'
@@ -67,18 +67,19 @@ export default defineComponent({
             this.canvasHandler = new CanvasHandler(canvas)
             const parsedObject = new ObjParser(blenderCube()).parseObject()
             if (parsedObject) {
-                this.canvasHandler.renderObject(parsedObject, 1)
+                this.canvasHandler.initToNewObject()
+                this.canvasHandler.renderInCurrentBuffer(parsedObject, 1)
+                // this.canvasHandler.renderObject(parsedObject, 1)
             }
             document.addEventListener('mousedown', this.mouseWheelDownEvent)
             document.addEventListener('mouseup', this.mouseWheelUpEvent)
         }
-
-        watch(() => this.webGLData, () => {
-            if (this.canvasHandler) {
-                // console.log(this.webGLData)
-                this.canvasHandler.renderObject(this.webGLData, 1)
-            }
-        }, { deep: true })
+        const renderNewObject = this.renderNewObject.bind(this)
+        const pushToCurrentObject = this.pushToCurrentObject.bind(this)
+        const initToNewObject = this.initToNewObject.bind(this)
+        this.$store.commit('webgl/setRenderNewObject', renderNewObject)
+        this.$store.commit('webgl/setPushToCurrentObject', pushToCurrentObject)
+        this.$store.commit('webgl/setInitToNewObject', initToNewObject)
     },
 
     beforeUnmount() {
@@ -89,12 +90,33 @@ export default defineComponent({
     },
 
     methods: {
+        initToNewObject() {
+            if (this.canvasHandler) {
+                this.canvasHandler.initToNewObject()
+            }
+        },
+
+        renderNewObject() {
+            if (this.canvasHandler) {
+                this.canvasHandler.initToNewObject()
+                this.canvasHandler.renderInCurrentBuffer(this.webGLData, 1)
+            }
+        },
+
+        pushToCurrentObject() {
+            if (this.canvasHandler) {
+                this.canvasHandler.renderInCurrentBuffer(this.webGLData, 1)
+            }
+        },
+
         checkboxEvent(e: Event) {
             const data: WebGLData = {
                 vertices: [-1, -1, 1, 1, -1, 1, 1, -2, 1, 1, -2, 1, -1, -2, 1, -1, -1, 1],
                 normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]
             }
-            this.$store.dispatch('webgl/setWebGLData', data, { root: true })
+            // this.$store.dispatch('webgl/pushToWebGLData', data, { root: true })
+            this.$store.dispatch('socket/notifyWebGlPushToCurrentObject', data, { root: true })
+
             const target = e.target as HTMLInputElement
             if (this.canvasHandler) {
                 if (target.checked) {
@@ -110,10 +132,8 @@ export default defineComponent({
             if (this.canvasHandler) {
                 if (e.deltaY > 0) {
                     this.canvasHandler.zoomCameraByPercent(10)
-                    // this.canvasHandler.moveCameraByOneAxis('z', 60)
                 } else {
                     this.canvasHandler.zoomCameraByPercent(-10)
-                    // this.canvasHandler.moveCameraByOneAxis('z', -60)
                 }
             }
         },
